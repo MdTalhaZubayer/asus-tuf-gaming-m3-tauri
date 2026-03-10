@@ -1,0 +1,85 @@
+# ============================================================
+# ASUS TUF Gaming M3 – Tauri 2 + React + Vite + Rust
+# ============================================================
+
+# ──────────────────────────────────────────
+# Node / Frontend
+# ──────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+
+# Bun
+.bun/
+
+# Vite cache
+.vite/
+vite.config.ts.timestamp-*
+
+# TypeScript build info
+*.tsbuildinfo
+
+# ──────────────────────────────────────────
+# Rust / Cargo
+# ──────────────────────────────────────────
+src-tauri/target/
+
+# ──────────────────────────────────────────
+# Tauri
+# ──────────────────────────────────────────
+# Auto-generated capability schemas (regenerated on every build)
+src-tauri/gen/schemas/
+
+# Tauri bundle output already covered by dist/ above
+
+# ──────────────────────────────────────────
+# Logs
+# ──────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# ──────────────────────────────────────────
+# Environment & secrets
+# ──────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ──────────────────────────────────────────
+# Editor – VS Code
+# ──────────────────────────────────────────
+.vscode/*
+# Keep shared extension recommendations
+!.vscode/extensions.json
+# Keep shared settings if you choose to commit them
+# !.vscode/settings.json
+
+# ──────────────────────────────────────────
+# OS artefacts
+# ──────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ──────────────────────────────────────────
+# Misc
+# ──────────────────────────────────────────
+*.local
+*.suo
+*.user
