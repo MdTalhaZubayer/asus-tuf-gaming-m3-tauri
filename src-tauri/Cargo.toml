@@ -1,8 +1,8 @@
 [package]
 name = "asus-mouse-control-tauri"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Control Asus TUF Gaming M3 mouse"
+authors = ["Md Talha Zubayer"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
