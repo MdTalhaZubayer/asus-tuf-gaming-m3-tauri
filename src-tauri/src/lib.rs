@@ -305,8 +305,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![get_settings, save_to_mouse])
         .setup(|app| {
             // Create a simple native menu
+            let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&quit_i])?;
+            let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
             let tray_icon_bytes = include_bytes!("../icons/32x32.png");
             let tray_icon = tauri::image::Image::from_bytes(tray_icon_bytes).expect("failed to load tray icon");
@@ -316,6 +317,12 @@ pub fn run() {
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
                     "quit" => {
                         app.exit(0);
                     }
@@ -395,6 +402,10 @@ pub fn run() {
                 }
                 tauri::WindowEvent::Focused(false) => {
                     // Standard tray utility behavior: hide when focus is lost
+                    // On some Linux compositors (like Hyprland), focus-follows-mouse
+                    // can cause the window to hide immediately. We disable this for Linux
+                    // to maintain a stable window until the user closes it.
+                    #[cfg(not(target_os = "linux"))]
                     let _ = window.hide();
                 }
                 _ => {}

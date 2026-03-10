@@ -38,6 +38,7 @@
           openssl
           hidapi           # USB HID (replaces Windows hidapi)
           udev
+          libayatana-appindicator
         ];
 
         # ── Build-time deps ──────────────────────────────────────────────────
@@ -119,6 +120,7 @@
           # Lets WebKitGTK find fonts / certs at runtime in the dev shell
           WEBKIT_DISABLE_COMPOSITING_MODE = "1";
           PKG_CONFIG_PATH = "${pkgs.hidapi}/lib/pkgconfig:${pkgs.openssl.dev}/lib/pkgconfig";
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
 
           shellHook = ''
             echo "🖱️  ASUS TUF Gaming M3 dev shell ready"

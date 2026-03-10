@@ -1,41 +1,10 @@
-# Fallback for NixOS users who don't use flakes.
-# Usage: nix-shell
-{ pkgs ? import <nixpkgs> {} }:
+# shell.nix
+# This file provides compatibility for nix-shell. 
+# It delegates to the flake's devShell to ensure consistency.
 
-pkgs.mkShell {
-  buildInputs = with pkgs; [
-    # Rust
-    rustup
-
-    # Tauri / WebKitGTK
-    pkg-config
-    webkitgtk_4_1
-    libsoup_3
-    gtk3
-    glib
-    cairo
-    pango
-    gdk-pixbuf
-    atk
-    librsvg
-    openssl
-
-    # USB HID
-    hidapi
-    udev
-
-    # Frontend
-    bun
-    nodejs
-
-    # Tauri helpers
-    wrapGAppsHook4
-  ];
-
-  shellHook = ''
-    export PKG_CONFIG_PATH="${pkgs.hidapi}/lib/pkgconfig:${pkgs.openssl.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
-    export WEBKIT_DISABLE_COMPOSITING_MODE=1
-    rustup install stable 2>/dev/null || true
-    echo "🖱️  Run: bun install && bun run tauri dev"
-  '';
-}
+let
+  flake = builtins.getFlake (toString ./.);
+  system = builtins.currentSystem;
+  pkgs = import (flake.inputs.nixpkgs) { inherit system; };
+in
+  flake.devShells.${system}.default
