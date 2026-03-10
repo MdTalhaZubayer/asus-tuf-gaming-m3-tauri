@@ -1,6 +1,8 @@
 # ASUS TUF Gaming M3 — Controller
 
-> A lightweight, open-source desktop utility for configuring the **ASUS TUF Gaming M3** mouse on Windows — without needing Armoury Crate.
+> A lightweight, open-source desktop utility for configuring the **ASUS TUF Gaming M3** mouse on **Windows** — without needing Armoury Crate.
+>
+> **LINUX USERS**: Please use the [`nix/linux`](https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri/tree/nix/linux) branch for NixOS/Linux specific code and environment setup.
 
 Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [Rust](https://www.rust-lang.org/). Communicates directly with the mouse over **USB HID** (no driver installation required).
 
@@ -59,51 +61,7 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 
 ## NixOS / Linux
 
-A [`flake.nix`](flake.nix) is included. It provides a dev shell, an installable package, and a NixOS module for the USB udev rule.
-
-### Dev shell (development)
-
-```bash
-nix develop        # with flakes
-# or
-nix-shell          # shell.nix fallback
-bun install
-bun run tauri dev
-```
-
-### Install as a Nix package
-
-> **One-time step** — the frontend build is a Fixed-Output Derivation that needs a real hash.
-
-```bash
-# 1. First build (will fail with hash mismatch, but prints the real hash)
-nix build .#frontend 2>&1 | grep "got:"
-
-# 2. Replace the fakeSha256 placeholder in flake.nix with the printed hash
-
-# 3. Build the full app
-nix build
-./result/bin/asus-mouse-control-tauri
-```
-
-### NixOS udev rule (required for mouse access)
-
-Add to your `configuration.nix`:
-
-```nix
-imports = [ inputs.asus-m3.nixosModules.default ];
-```
-
-Or manually:
-
-```nix
-services.udev.extraRules = ''
-  SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="1910", \
-    MODE="0666", GROUP="input", TAG+="uaccess"
-'';
-```
-
-Then `sudo nixos-rebuild switch`.
+Support for Linux (including Nix flakes, dev shells, and udev rules) is maintained on the [**`nix/linux`**](https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri/tree/nix/linux) branch. Please switch to that branch for setup instructions.
 
 ---
 
