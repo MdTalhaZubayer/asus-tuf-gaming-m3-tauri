@@ -25,9 +25,18 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 
 > The app sits in your system tray and pops up as a compact 360×600 panel.
 
-| Performance | Light | Buttons |
-|:-----------:|:-----:|:-------:|
-| ![Performance tab — DPI stages, polling rate, debounce & angle snapping](screenshots/performance.png) | ![Light tab — Aura RGB mode, color & intensity](screenshots/light.png) | ![Buttons tab — remap all 7 programmable buttons](screenshots/buttons.png) |
+<table>
+  <tr>
+    <td align="center"><b>Performance</b></td>
+    <td align="center"><b>Light</b></td>
+    <td align="center"><b>Buttons</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/performance.png" width="220" alt="Performance tab — DPI stages, polling rate, debounce &amp; angle snapping"/></td>
+    <td><img src="screenshots/light.png" width="220" alt="Light tab — Aura RGB mode, color &amp; intensity"/></td>
+    <td><img src="screenshots/buttons.png" width="220" alt="Buttons tab — remap all 7 programmable buttons"/></td>
+  </tr>
+</table>
 
 ---
 
