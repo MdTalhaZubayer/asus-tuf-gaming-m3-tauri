@@ -1,8 +1,10 @@
 # ASUS TUF Gaming M3 — Controller
 
-> A lightweight, open-source desktop utility for configuring the **ASUS TUF Gaming M3** mouse on Windows — without needing Armoury Crate.
+> A lightweight, open-source desktop utility for configuring the **ASUS TUF Gaming M3** mouse on **NixOS / Linux**.
+>
+> **NOTE**: This branch (`nix/linux`) contains Linux-specific optimizations and Nix environment configuration. For the stable Windows version, see the [`main`](https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri/tree/main) branch.
 
-Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [Rust](https://www.rust-lang.org/). Communicates directly with the mouse over **USB HID** (no driver installation required).
+Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [Rust](https://www.rust-lang.org/). Communicates directly with the mouse over **USB HID**.
 
 ---
 
@@ -43,7 +45,7 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 ## Requirements
 
 ### Runtime
-- Windows 10/11 (x64)  
+- **NixOS / Linux** (x64/AArch64)  
 - ASUS TUF Gaming M3 mouse connected via USB
 
 ### Build Dependencies
@@ -135,10 +137,15 @@ bun run tauri dev
 
 ## Building
 
-### Production build (Windows)
+### Production build (Linux)
 
 ```bash
-bun run tauri build --target x86_64-pc-windows-msvc
+# Recommended: Build via Nix (produces a standalone closure)
+nix build
+./result/bin/asus-mouse-control-tauri
+
+# Or using Bun/Tauri CLI in the dev shell
+bun run tauri build
 ```
 
 The installer and binary will be output to:
