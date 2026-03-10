@@ -27,7 +27,7 @@
         # ── Runtime / link-time deps ─────────────────────────────────────────
         buildInputs = with pkgs; [
           webkitgtk_4_1   # Tauri webview on Linux
-          soup_3
+          libsoup_3
           gtk3
           glib
           cairo
@@ -44,6 +44,7 @@
         nativeBuildInputs = with pkgs; [
           pkg-config
           bun
+          nodejs
           wrapGAppsHook4
         ];
 

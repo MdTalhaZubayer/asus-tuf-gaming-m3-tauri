@@ -10,7 +10,7 @@ pkgs.mkShell {
     # Tauri / WebKitGTK
     pkg-config
     webkitgtk_4_1
-    soup_3
+    libsoup_3
     gtk3
     glib
     cairo

@@ -11,6 +11,7 @@ dist-ssr/
 
 # Bun
 .bun/
+bun.lock
 
 # Vite cache
 .vite/
@@ -83,3 +84,6 @@ $RECYCLE.BIN/
 *.local
 *.suo
 *.user
+
+# nix
+flake.lock
