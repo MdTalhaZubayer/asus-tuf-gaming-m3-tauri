@@ -43,7 +43,7 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 ## Requirements
 
 ### Runtime
-- Windows 10/11 (x64)
+- Windows 10/11 (x64)  
 - ASUS TUF Gaming M3 mouse connected via USB
 
 ### Build Dependencies
@@ -56,6 +56,57 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 | WebView2 | (usually pre-installed on Win 11) | [Download](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) |
 
 ---
+
+## NixOS / Linux
+
+A [`flake.nix`](flake.nix) is included. It provides a dev shell, an installable package, and a NixOS module for the USB udev rule.
+
+### Dev shell (development)
+
+```bash
+nix develop        # with flakes
+# or
+nix-shell          # shell.nix fallback
+bun install
+bun run tauri dev
+```
+
+### Install as a Nix package
+
+> **One-time step** — the frontend build is a Fixed-Output Derivation that needs a real hash.
+
+```bash
+# 1. First build (will fail with hash mismatch, but prints the real hash)
+nix build .#frontend 2>&1 | grep "got:"
+
+# 2. Replace the fakeSha256 placeholder in flake.nix with the printed hash
+
+# 3. Build the full app
+nix build
+./result/bin/asus-mouse-control-tauri
+```
+
+### NixOS udev rule (required for mouse access)
+
+Add to your `configuration.nix`:
+
+```nix
+imports = [ inputs.asus-m3.nixosModules.default ];
+```
+
+Or manually:
+
+```nix
+services.udev.extraRules = ''
+  SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="1910", \
+    MODE="0666", GROUP="input", TAG+="uaccess"
+'';
+```
+
+Then `sudo nixos-rebuild switch`.
+
+---
+
 
 ## Getting Started
 
