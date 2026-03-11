@@ -100,10 +100,11 @@
             cp -r ${frontend} dist
           '';
 
-          # Ensure the wrapped binary can find our bundled fonts
+          # Ensure the wrapped binary can find our bundled fonts and dynamic libraries
           postFixup = ''
             wrapProgram $out/bin/asus-mouse-control-tauri \
-              --set FONTCONFIG_FILE "${fontsConf}"
+              --set FONTCONFIG_FILE "${fontsConf}" \
+              --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [ pkgs.libayatana-appindicator pkgs.libdbusmenu-gtk3 ]}"
           '';
 
           meta = with pkgs.lib; {
