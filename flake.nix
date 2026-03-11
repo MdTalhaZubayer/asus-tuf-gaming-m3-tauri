@@ -88,9 +88,12 @@
 
           inherit buildInputs nativeBuildInputs;
 
-          TAURI_CONFIG_BUILD_BEFORE_BUILD_COMMAND = "";
-
           doCheck = false;
+
+          postPatch = ''
+            substituteInPlace src-tauri/tauri.conf.json \
+              --replace-fail '"beforeBuildCommand": "bun run build"' '"beforeBuildCommand": ""'
+          '';
 
           preBuild = ''
             echo "→ Injecting pre-built frontend into dist/"
