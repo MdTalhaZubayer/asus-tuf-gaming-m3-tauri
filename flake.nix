@@ -29,6 +29,8 @@
           gsettings-desktop-schemas
           fontconfig
           glib-networking
+          jetbrains-mono   # app fonts
+          inter
         ];
 
         # ── Build-time deps ──────────────────────────────────────────────────
@@ -69,6 +71,11 @@
           outputHash = "sha256-KTYI0anj7jhogJza3aWZkl399pvp4hRxuIodHPr+vUw=";
         };
 
+        # ── Fontconfig so WebKitGTK finds JetBrains Mono + Inter ─────────────
+        fontsConf = pkgs.makeFontsConf {
+          fontDirectories = [ pkgs.jetbrains-mono pkgs.inter ];
+        };
+
         # ── The Tauri application ────────────────────────────────────────────
         asus-mouse-control-tauri = pkgs.rustPlatform.buildRustPackage {
           pname = "asus-mouse-control-tauri";
@@ -86,6 +93,12 @@
           preBuild = ''
             echo "→ Injecting pre-built frontend into dist/"
             cp -r ${frontend} dist
+          '';
+
+          # Ensure the wrapped binary can find our bundled fonts
+          postFixup = ''
+            wrapProgram $out/bin/asus-mouse-control-tauri \
+              --set FONTCONFIG_FILE "${fontsConf}"
           '';
 
           meta = with pkgs.lib; {
