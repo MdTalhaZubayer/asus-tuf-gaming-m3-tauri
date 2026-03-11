@@ -56,7 +56,7 @@ Add this flake to your NixOS configuration for a fully managed setup — the app
 ```nix
 # flake.nix
 {
-  inputs.asus-m3.url = "github:MdTalhaZubayer/asus-tuf-gaming-m3-tauri";
+  inputs.asus-m3.url = "github:MdTalhaZubayer/asus-tuf-gaming-m3-tauri/nix/linux";
   # ...
 }
 ```
@@ -161,7 +161,8 @@ ASUS TUF Gaming M3 (onboard EEPROM)
 asus-tuf-gaming-m3-tauri/
 ├── src/                    # React frontend
 │   ├── App.tsx             # Main UI (tabs: Perf, Light, Btns)
-│   ├── App.css             # Styles
+│   ├── App.css             # Styles (with local font-face)
+│   ├── fonts/              # Bundled fonts (JetBrains Mono, Inter)
 │   └── assets/             # Logo assets
 ├── src-tauri/              # Rust/Tauri backend
 │   ├── src/
