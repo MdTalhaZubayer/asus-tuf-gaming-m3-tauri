@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import {
   RotateCcw, Activity, Zap,
   Lightbulb, MousePointer2, ChevronDown, RefreshCw, Save
@@ -131,6 +132,16 @@ export default function App() {
   };
 
   useEffect(() => { handleRefresh(); }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        getCurrentWindow().close().catch(console.error);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSave = async () => {
     setBusy('save');
