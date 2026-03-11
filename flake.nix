@@ -159,8 +159,8 @@
 
             package = lib.mkOption {
               type = lib.types.package;
-              default = self.packages.${pkgs.system}.default;
-              defaultText = lib.literalExpression "inputs.asus-m3.packages.\${pkgs.system}.default";
+              default = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+              defaultText = lib.literalExpression "inputs.asus-m3.packages.\${pkgs.stdenv.hostPlatform.system}.default";
               description = "The asus-mouse-control-tauri package to use.";
             };
           };
