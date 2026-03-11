@@ -297,6 +297,11 @@ fn save_to_mouse(settings: MouseSettings) -> Result<bool, String> {
     Ok(true)
 }
 
+#[tauri::command]
+fn hide_window(window: tauri::Window) {
+    let _ = window.hide();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -308,7 +313,7 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        .invoke_handler(tauri::generate_handler![get_settings, save_to_mouse])
+        .invoke_handler(tauri::generate_handler![get_settings, save_to_mouse, hide_window])
         .setup(|app| {
             // Create a simple native menu
             let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;

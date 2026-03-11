@@ -26,18 +26,18 @@ type MouseSettings = {
 };
 
 // ── Constants ───────────────────────────────────────────────────────────────
-const DEFAULTS        = [400, 800, 1600, 3200];
-const MIN_DPI         = 100;
-const MAX_DPI         = 5100;
-const STAGE_LABELS    = ['Low', 'Medium', 'High', 'Precise'];
-const POLLING_RATES   = [125, 250, 500, 1000] as const;
-const LED_MODES       = ['static', 'breathing', 'cycle', 'off'] as const;
+const DEFAULTS = [400, 800, 1600, 3200];
+const MIN_DPI = 100;
+const MAX_DPI = 5100;
+const STAGE_LABELS = ['Low', 'Medium', 'High', 'Precise'];
+const POLLING_RATES = [125, 250, 500, 1000] as const;
+const LED_MODES = ['static', 'breathing', 'cycle', 'off'] as const;
 const AVAILABLE_ACTIONS = ['left', 'right', 'middle', 'back', 'forward', 'dpi-up', 'dpi-down', 'scroll-up', 'scroll-down', 'disabled'];
 
 // ── Pretty Dropdown ────────────────────────────────────────────────────────
-function PrettyDropdown({ value, options, onChange, disabled }: { 
-  value: string, 
-  options: string[], 
+function PrettyDropdown({ value, options, onChange, disabled }: {
+  value: string,
+  options: string[],
   onChange: (v: string) => void,
   disabled?: boolean
 }) {
@@ -75,7 +75,7 @@ function PrettyDropdown({ value, options, onChange, disabled }: {
       {open && (
         <div className={`dropdown__menu ${upwards ? 'dropdown__menu--up' : ''}`}>
           {options.map(opt => (
-            <div key={opt} 
+            <div key={opt}
               className={`dropdown__item ${value === opt ? 'dropdown__item--active' : ''}`}
               onClick={() => { onChange(opt); setOpen(false); }}
             >
@@ -89,17 +89,17 @@ function PrettyDropdown({ value, options, onChange, disabled }: {
 }
 
 export default function App() {
-  const [settings, setSettings]         = useState<MouseSettings>({
+  const [settings, setSettings] = useState<MouseSettings>({
     activeProfile: 0, dpis: DEFAULTS, pollingRate: 1000, debounce: 12, angleSnapping: false,
     led: { mode: 'static', brightness: 4, r: 255, g: 176, b: 0 },
     buttons: []
   });
-  const [editStage, setEditStage]       = useState(0);
-  const [connected, setConnected]       = useState<boolean | null>(null);
-  const [pendingDpi, setPendingDpi]     = useState<number | null>(null);
-  const [busy, setBusy]                 = useState<string | null>(null);
-  const [status, setStatus]             = useState<{ msg: string; type: 'ok' | 'err' | 'info' }>({ msg: 'Ready', type: 'info' });
-  const [activeTab, setActiveTab]       = useState<'perf' | 'light' | 'btns'>('perf');
+  const [editStage, setEditStage] = useState(0);
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [pendingDpi, setPendingDpi] = useState<number | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ msg: string; type: 'ok' | 'err' | 'info' }>({ msg: 'Ready', type: 'info' });
+  const [activeTab, setActiveTab] = useState<'perf' | 'light' | 'btns'>('perf');
 
   const updateStatus = useCallback((msg: string, type: typeof status.type = 'info') => {
     setStatus({ msg, type });
@@ -136,7 +136,10 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        getCurrentWindow().close().catch(console.error);
+        const win = getCurrentWindow();
+        win.hide()
+          .catch(() => invoke("hide_window"))
+          .catch(console.error);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -147,17 +150,17 @@ export default function App() {
     setBusy('save');
     updateStatus('Writing to EEPROM...', 'info');
     try {
-        const ok = await invoke<boolean>("save_to_mouse", { settings });
-        if (ok) {
-            updateStatus('Settings stored successfully.', 'ok');
-            handleRefresh();
-        } else {
-            updateStatus('Hardware write failed.', 'err');
-        }
+      const ok = await invoke<boolean>("save_to_mouse", { settings });
+      if (ok) {
+        updateStatus('Settings stored successfully.', 'ok');
+        handleRefresh();
+      } else {
+        updateStatus('Hardware write failed.', 'err');
+      }
     } catch (e) {
-        updateStatus('Write error: ' + e, 'err');
+      updateStatus('Write error: ' + e, 'err');
     } finally {
-        setBusy(null);
+      setBusy(null);
     }
   };
 
@@ -249,7 +252,7 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <div className="perf-group" style={{marginTop: '10px'}}>
+              <div className="perf-group" style={{ marginTop: '10px' }}>
                 <div className="perf-group__title">Debounce</div>
                 <div className="chip-row">
                   {[4, 12, 20, 32].map(ms => (
@@ -258,11 +261,11 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <div className="perf-group" style={{marginTop: '10px'}}>
-                <div className="button-row" style={{border: 'none', padding: '4px 0'}}>
-                  <div className="perf-group__title" style={{marginBottom: 0}}>Angle Snapping</div>
-                  <button 
-                    className={`toggle ${settings.angleSnapping ? 'toggle--on' : ''}`} 
+              <div className="perf-group" style={{ marginTop: '10px' }}>
+                <div className="button-row" style={{ border: 'none', padding: '4px 0' }}>
+                  <div className="perf-group__title" style={{ marginBottom: 0 }}>Angle Snapping</div>
+                  <button
+                    className={`toggle ${settings.angleSnapping ? 'toggle--on' : ''}`}
                     disabled={!connected}
                     onClick={() => setSettings(p => ({ ...p, angleSnapping: !p.angleSnapping }))}
                   >
@@ -276,7 +279,7 @@ export default function App() {
 
         {activeTab === 'light' && (
           <div className="tab-content">
-            <section className="card light-visualizer" style={{ 
+            <section className="card light-visualizer" style={{
               '--led-color': `rgb(${settings.led.r}, ${settings.led.g}, ${settings.led.b})`,
               '--logo-url': `url(${logo})`
             } as CSSProperties}>
@@ -287,10 +290,10 @@ export default function App() {
 
             <section className="card">
               <div className="card__label"><Lightbulb size={10} /> Aura RGB</div>
-              <div className="chip-row" style={{marginBottom: '10px'}}>
+              <div className="chip-row" style={{ marginBottom: '10px' }}>
                 {LED_MODES.map((mode) => (
                   <button key={mode} className={`chip ${settings.led.mode === mode ? 'chip--on' : ''}`} disabled={!connected}
-                    onClick={() => setSettings(p => ({ ...p, led: { ...p.led, mode: mode as any } }))} style={{textTransform: 'capitalize'}}>{mode}</button>
+                    onClick={() => setSettings(p => ({ ...p, led: { ...p.led, mode: mode as any } }))} style={{ textTransform: 'capitalize' }}>{mode}</button>
                 ))}
               </div>
 
@@ -307,7 +310,7 @@ export default function App() {
               )}
 
               {settings.led.mode !== 'off' && (
-                <div className="perf-group" style={{marginTop: '10px'}}>
+                <div className="perf-group" style={{ marginTop: '10px' }}>
                   <div className="perf-group__title">Intensity</div>
                   <input type="range" className="slider" min={1} max={4} step={1} value={Math.max(1, settings.led.brightness)} disabled={!connected}
                     onChange={e => setSettings(p => ({ ...p, led: { ...p.led, brightness: Number(e.target.value) } }))}
@@ -327,9 +330,9 @@ export default function App() {
                 {settings.buttons.slice(0, 7).map((b, i) => (
                   <div key={i} className="button-row">
                     <span className="button-label">{b.physical}</span>
-                    <PrettyDropdown 
-                      value={b.action} 
-                      options={AVAILABLE_ACTIONS} 
+                    <PrettyDropdown
+                      value={b.action}
+                      options={AVAILABLE_ACTIONS}
                       disabled={!connected}
                       onChange={act => setSettings(p => ({
                         ...p, buttons: p.buttons.map(btn => btn.physical === b.physical ? { ...btn, action: act } : btn)
@@ -351,7 +354,7 @@ export default function App() {
           <Save size={14} /> <span>{busy === 'save' ? 'SYNCING...' : 'APPLY CONFIG'}</span>
         </button>
       </div>
-      
+
       <div className={`status-bar status-bar--${status.type}`}>
         {status.msg}
       </div>
