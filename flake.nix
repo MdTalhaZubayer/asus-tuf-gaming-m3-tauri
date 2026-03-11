@@ -88,6 +88,8 @@
 
           inherit buildInputs nativeBuildInputs;
 
+          TAURI_CONFIG_BUILD_BEFORE_BUILD_COMMAND = "";
+
           doCheck = false;
 
           preBuild = ''
