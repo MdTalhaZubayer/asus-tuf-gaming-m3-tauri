@@ -2,27 +2,14 @@
   description = "ASUS TUF Gaming M3 — lightweight mouse controller built with Tauri 2";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
-
-    crane.url = "github:ipetkov/crane";
-
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, crane, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlays.default ];
-        };
-
-        rustToolchain = pkgs.rust-bin.stable.latest.default;
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+        pkgs = import nixpkgs { inherit system; };
 
         # ── Runtime / link-time deps ─────────────────────────────────────────
         buildInputs = with pkgs; [
@@ -36,27 +23,27 @@
           atk
           librsvg
           openssl
-          hidapi           # USB HID (replaces Windows hidapi)
+          hidapi           # USB HID
           udev
           libayatana-appindicator
           gsettings-desktop-schemas
           fontconfig
-          inter
-          jetbrains-mono
+          glib-networking
         ];
 
         # ── Build-time deps ──────────────────────────────────────────────────
         nativeBuildInputs = with pkgs; [
           pkg-config
+          cargo-tauri.hook
           bun
           nodejs
           wrapGAppsHook4
         ];
 
         # ── Pre-build the React frontend (bun → dist/) ───────────────────────
-        # This is a Fixed-Output Derivation: Nix allows network inside FODs
-        # because the hash pins the output. Run `nix build .#frontend` once,
-        # replace `sha256-AAAA…` with the printed hash, then re-run.
+        # Fixed-Output Derivation: Nix allows network inside FODs because
+        # the hash pins the output. If the hash is wrong, the build fails
+        # and prints the correct hash — update it here and re-run.
         frontend = pkgs.stdenv.mkDerivation {
           name = "asus-m3-frontend";
           src = ./.;
@@ -68,6 +55,7 @@
 
           buildPhase = ''
             bun install --frozen-lockfile
+            patchShebangs node_modules
             bun run build
           '';
 
@@ -78,54 +66,61 @@
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
           # ⚠ Replace with the real hash after your first `nix build .#frontend`
-          outputHash = pkgs.lib.fakeSha256;
+          outputHash = "sha256-KTYI0anj7jhogJza3aWZkl399pvp4hRxuIodHPr+vUw=";
         };
 
-        # ── Cache Cargo dependencies in a separate derivation ────────────────
-        cargoArtifacts = craneLib.buildDepsOnly {
-          src = craneLib.cleanCargoSource ./.;
+        # ── The Tauri application ────────────────────────────────────────────
+        asus-mouse-control-tauri = pkgs.rustPlatform.buildRustPackage {
+          pname = "asus-mouse-control-tauri";
+          version = "0.1.0";
+          src = ./.;
+
+          cargoRoot = "src-tauri";
+          buildAndTestSubdir = "src-tauri";
+          cargoLock.lockFile = ./src-tauri/Cargo.lock;
+
           inherit buildInputs nativeBuildInputs;
-          cargoExtraArgs = "--manifest-path src-tauri/Cargo.toml";
+
           doCheck = false;
+
+          preBuild = ''
+            echo "→ Injecting pre-built frontend into dist/"
+            cp -r ${frontend} dist
+          '';
+
+          meta = with pkgs.lib; {
+            description = "ASUS TUF Gaming M3 mouse controller (no Armoury Crate needed)";
+            homepage    = "https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri";
+            license     = licenses.mit;
+            mainProgram = "asus-mouse-control-tauri";
+            platforms   = [ "x86_64-linux" "aarch64-linux" ];
+          };
         };
 
       in
       {
-        # ── Installable package ──────────────────────────────────────────────
+        # ── Installable packages ─────────────────────────────────────────────
         packages = {
-          frontend = frontend;
-
-          default = craneLib.buildPackage {
-            inherit cargoArtifacts buildInputs nativeBuildInputs;
-            src = ./.;
-            cargoExtraArgs = "--manifest-path src-tauri/Cargo.toml";
-            doCheck = false;
-
-            preBuild = ''
-              echo "→ Injecting pre-built frontend into dist/"
-              cp -r ${frontend} dist
-            '';
-
-            meta = with pkgs.lib; {
-              description = "ASUS TUF Gaming M3 mouse controller (no Armoury Crate needed)";
-              homepage    = "https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri";
-              license     = licenses.mit;
-              maintainers = [ "MdTalhaZubayer" ];
-              platforms   = [ "x86_64-linux" "aarch64-linux" ];
-            };
-          };
+          inherit frontend;
+          default = asus-mouse-control-tauri;
         };
 
         # ── Development shell ────────────────────────────────────────────────
         devShells.default = pkgs.mkShell {
           inherit buildInputs;
-          nativeBuildInputs = nativeBuildInputs ++ [ rustToolchain ];
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            wrapGAppsHook4
+            cargo
+            rustc
+            cargo-tauri
+            bun
+            nodejs
+          ];
 
-          # Lets WebKitGTK find fonts / certs at runtime in the dev shell
-          WEBKIT_DISABLE_COMPOSITING_MODE = "1";
           PKG_CONFIG_PATH = "${pkgs.hidapi}/lib/pkgconfig:${pkgs.openssl.dev}/lib/pkgconfig";
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
-          XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:${pkgs.jetbrains-mono}/share:${pkgs.inter}/share:$XDG_DATA_DIRS";
+          XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
 
           shellHook = ''
             echo "🖱️  ASUS TUF Gaming M3 dev shell ready"
@@ -139,14 +134,48 @@
 
     //
 
-    # ── NixOS module (system-wide udev rule) — add to your configuration.nix ─
+    # ── NixOS module ─────────────────────────────────────────────────────────
     {
-      nixosModules.default = { ... }: {
-        services.udev.extraRules = ''
-          # ASUS TUF Gaming M3 (VID 0x0B05 / PID 0x1910) — allow hidraw access
-          SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="1910", \
-            MODE="0666", GROUP="input", TAG+="uaccess"
-        '';
-      };
+      nixosModules.default = { config, lib, pkgs, ... }:
+        let
+          cfg = config.services.asus-tuf-gaming-m3;
+        in
+        {
+          options.services.asus-tuf-gaming-m3 = {
+            enable = lib.mkEnableOption "ASUS TUF Gaming M3 mouse controller";
+
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = self.packages.${pkgs.system}.default;
+              defaultText = lib.literalExpression "inputs.asus-m3.packages.\${pkgs.system}.default";
+              description = "The asus-mouse-control-tauri package to use.";
+            };
+          };
+
+          config = lib.mkIf cfg.enable {
+            # udev rule for HID access — no sudo needed to talk to the mouse
+            services.udev.extraRules = ''
+              # ASUS TUF Gaming M3 (VID 0x0B05 / PID 0x1910) — allow hidraw access
+              SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="1910", \
+                MODE="0666", GROUP="input", TAG+="uaccess"
+            '';
+
+            # Install the binary system-wide
+            environment.systemPackages = [ cfg.package ];
+
+            # Systemd user service — auto-starts the tray app on graphical login
+            systemd.user.services.asus-tuf-gaming-m3 = {
+              description = "ASUS TUF Gaming M3 Mouse Controller";
+              wantedBy = [ "graphical-session.target" ];
+              partOf = [ "graphical-session.target" ];
+              after = [ "graphical-session.target" ];
+              serviceConfig = {
+                ExecStart = "${cfg.package}/bin/asus-mouse-control-tauri";
+                Restart = "on-failure";
+                RestartSec = 5;
+              };
+            };
+          };
+        };
     };
 }

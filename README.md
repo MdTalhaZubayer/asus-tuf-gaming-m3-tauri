@@ -1,8 +1,6 @@
 # ASUS TUF Gaming M3 — Controller
 
 > A lightweight, open-source desktop utility for configuring the **ASUS TUF Gaming M3** mouse on **NixOS / Linux**.
->
-> **NOTE**: This branch (`nix/linux`) contains Linux-specific optimizations and Nix environment configuration. For the stable Windows version, see the [`main`](https://github.com/MdTalhaZubayer/asus-tuf-gaming-m3-tauri/tree/main) branch.
 
 Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [Rust](https://www.rust-lang.org/). Communicates directly with the mouse over **USB HID**.
 
@@ -44,59 +42,46 @@ Built with [Tauri 2](https://tauri.app/), [React 19](https://react.dev/), and [R
 
 ## Requirements
 
-### Runtime
-- **NixOS / Linux** (x64/AArch64)  
+- **NixOS / Linux** (x64/AArch64)
 - ASUS TUF Gaming M3 mouse connected via USB
-
-### Build Dependencies
-
-| Tool | Version | Install |
-|---|---|---|
-| [Rust](https://rustup.rs/) | stable | `rustup install stable` |
-| [Bun](https://bun.sh/) | latest | `winget install Oven-sh.Bun` |
-| [Tauri CLI](https://tauri.app/start/) | v2 | included in `devDependencies` |
-| WebView2 | (usually pre-installed on Win 11) | [Download](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) |
 
 ---
 
-## NixOS / Linux
+## Install as a NixOS Service (recommended)
 
-A [`flake.nix`](flake.nix) is included. It provides a dev shell, an installable package, and a NixOS module for the USB udev rule.
+Add this flake to your NixOS configuration for a fully managed setup — the app is installed, the udev rule is created, and a systemd user service auto-starts the tray app on login.
 
-### Dev shell (development)
-
-```bash
-nix develop        # with flakes
-# or
-nix-shell          # shell.nix fallback
-bun install
-bun run tauri dev
-```
-
-### Install as a Nix package
-
-> **One-time step** — the frontend build is a Fixed-Output Derivation that needs a real hash.
-
-```bash
-# 1. First build (will fail with hash mismatch, but prints the real hash)
-nix build .#frontend 2>&1 | grep "got:"
-
-# 2. Replace the fakeSha256 placeholder in flake.nix with the printed hash
-
-# 3. Build the full app
-nix build
-./result/bin/asus-mouse-control-tauri
-```
-
-### NixOS udev rule (required for mouse access)
-
-Add to your `configuration.nix`:
+### 1. Add the flake input
 
 ```nix
-imports = [ inputs.asus-m3.nixosModules.default ];
+# flake.nix
+{
+  inputs.asus-m3.url = "github:MdTalhaZubayer/asus-tuf-gaming-m3-tauri";
+  # ...
+}
 ```
 
-Or manually:
+### 2. Enable the service
+
+```nix
+# configuration.nix
+{ inputs, ... }:
+{
+  imports = [ inputs.asus-m3.nixosModules.default ];
+  services.asus-tuf-gaming-m3.enable = true;
+}
+```
+
+Then `sudo nixos-rebuild switch`.
+
+This will:
+- Install the binary system-wide
+- Create the udev rule for USB HID access (no `sudo` needed to talk to the mouse)
+- Start a systemd user service on graphical login (`asus-tuf-gaming-m3.service`)
+
+### Manual udev rule (without the module)
+
+If you only want the udev rule without the service:
 
 ```nix
 services.udev.extraRules = ''
@@ -105,29 +90,15 @@ services.udev.extraRules = ''
 '';
 ```
 
-Then `sudo nixos-rebuild switch`.
-
 ---
 
+## Development
 
-## Getting Started
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-username/asus-tuf-gaming-m3-tauri.git
-cd asus-tuf-gaming-m3-tauri
-```
-
-### 2. Install frontend dependencies
+### Dev shell (with flakes)
 
 ```bash
+nix develop
 bun install
-```
-
-### 3. Run in development mode
-
-```bash
 bun run tauri dev
 ```
 
@@ -137,26 +108,14 @@ bun run tauri dev
 
 ## Building
 
-### Production build (Linux)
+### Production build (via Nix)
 
 ```bash
-# Recommended: Build via Nix (produces a standalone closure)
 nix build
 ./result/bin/asus-mouse-control-tauri
-
-# Or using Bun/Tauri CLI in the dev shell
-bun run tauri build
 ```
 
-The installer and binary will be output to:
-
-```
-src-tauri/target/x86_64-pc-windows-msvc/release/bundle/
-```
-
-You'll find:
-- `nsis/` — NSIS installer (`.exe`)
-- `msi/` — MSI installer
+> **First build note**: The frontend build is a Fixed-Output Derivation. If the hash is stale, the build will fail and print the correct hash. Update `flake.nix` with the printed hash and re-run `nix build`.
 
 ### Frontend-only build (for debugging)
 
@@ -172,8 +131,8 @@ Output goes to `dist/`.
 
 The app talks to the mouse using raw **USB HID reports** via the [`hidapi`](https://crates.io/crates/hidapi) Rust crate.
 
-- **Vendor ID**: `0x0B05` (ASUS)  
-- **Product ID**: `0x1910` (TUF Gaming M3)  
+- **Vendor ID**: `0x0B05` (ASUS)
+- **Product ID**: `0x1910` (TUF Gaming M3)
 - **Interface**: `1` (configuration interface)
 
 Settings are read from and written to the mouse's **onboard EEPROM**, so they persist without any software running — changes survive reboots and work on any PC.
@@ -212,6 +171,7 @@ asus-tuf-gaming-m3-tauri/
 │   ├── capabilities/       # Tauri permission definitions
 │   ├── Cargo.toml          # Rust dependencies
 │   └── tauri.conf.json     # Tauri configuration
+├── flake.nix               # Nix flake (package + NixOS module)
 ├── index.html
 ├── vite.config.ts
 └── package.json
