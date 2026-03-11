@@ -68,7 +68,7 @@
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
           # ⚠ Replace with the real hash after your first `nix build .#frontend`
-          outputHash = "";
+          outputHash = "sha256-WLArt4P9GqZYGkVJwfMyWpjUO7FyIwlAQbdBd9/7xbY=";
         };
 
         # ── Fontconfig so WebKitGTK finds JetBrains Mono + Inter ─────────────
